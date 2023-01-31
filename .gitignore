@@ -1,0 +1,6 @@
+# ignore all but .v(v) files and gitignore itself.
+/*
+
+!.gitignore
+!*.v
+!*.vv
