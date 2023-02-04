@@ -181,9 +181,9 @@ module uart #(
       end
 
       TX_STATE_DEBOUNCE: begin
-        // each clock cycle is 1us = 0.001ms
-        // 25
-        if (tx_counter == 25'b111111111111111111000) begin
+        // 27_000_000 -> 1000 ms delay
+        // 5*270_000 -> 50 ms delay
+        if (tx_counter == 5 * 270_000) begin
           if (btn1 == 1) tx_state <= TX_STATE_IDLE;
         end else tx_counter <= tx_counter + 1;
       end
