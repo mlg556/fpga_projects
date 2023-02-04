@@ -1,0 +1,24 @@
+module clk_div (
+    input  clk,
+    output out_clk
+);
+
+  // when you use N/2 delay, frequency gets divided by N
+  // to divide frequency by N, use N/2
+
+  localparam DELAY = 250;
+  reg [9:0] counter = 0;
+  reg out_pin = 0;
+
+  always @(posedge clk) begin
+    if (counter < DELAY) counter <= counter + 1;  // increment
+    else begin
+      counter <= 0;  // reset
+      out_pin <= ~out_pin;  // toggle output
+    end
+
+  end
+
+  assign out_clk = out_pin;
+
+endmodule

@@ -26,9 +26,9 @@ uart_test.o: uart.v uart_tb.v
 test: uart_test.o
 	vvp uart_test.o
 
-# Cleanup build artifacts
+# Cleanup build artifacts, del for windows cmd.exe
 clean:
-	rm uart.vcd uart.fs uart_test.o
+	del uart.fs 
 
 .PHONY: load clean test
 .INTERMEDIATE: uart_pnr.json uart.json uart_test.o
