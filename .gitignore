@@ -4,3 +4,5 @@
 !.gitignore
 !*.v
 !*.vv
+!makefile
+!tangnano9k.cst
