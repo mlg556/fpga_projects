@@ -13,12 +13,13 @@ module uart #(
 
 );
 
+  // RECEIVE
   localparam HALF_DELAY_WAIT = (DELAY_FRAMES / 2);
   localparam RX_STATE_IDLE = 0;
   localparam RX_STATE_START_BIT = 1;
   localparam RX_STATE_READ_WAIT = 2;
   localparam RX_STATE_READ = 3;
-  localparam RX_STATE_STOP_BIT = 5;
+  localparam RX_STATE_STOP_BIT = 4;
 
   // receive state machine with 5 states
   // idle, start bit, read wait, read, stop bit
@@ -71,6 +72,7 @@ module uart #(
           rx_state   <= RX_STATE_IDLE;
           rx_counter <= 0;
           byte_ready <= 1;
+
         end
       end
     endcase
@@ -82,4 +84,114 @@ module uart #(
       led <= ~data_in[5:0];
     end
   end
+
+  // TRANSMIT
+  reg [3:0] tx_state = 0;
+  reg [24:0] tx_counter = 0;  // for clock edge, timing
+  reg [7:0] data_out = 0;
+  reg tx_pin_register = 1;
+  reg [2:0] tx_memory_loc = 0;
+  reg [3:0] tx_byte_counter = 0;
+
+  assign uart_tx = tx_pin_register;
+
+  // 12 cells of 8 bit fake memory
+  localparam MEMORY_LENGTH = 12;
+  reg [7:0] test_memory[MEMORY_LENGTH-1:0];
+
+  initial begin
+    test_memory[0]  = "H";
+    test_memory[1]  = "e";
+    test_memory[2]  = "l";
+    test_memory[3]  = "l";
+    test_memory[4]  = "o";
+    test_memory[5]  = " ";
+    test_memory[6]  = "t";
+    test_memory[7]  = "h";
+    test_memory[8]  = "e";
+    test_memory[9]  = "r";
+    test_memory[10] = "e";
+    test_memory[11] = "!";
+  end
+
+  localparam TX_STATE_IDLE = 0;
+  localparam TX_STATE_START_BIT = 1;
+  localparam TX_STATE_WRITE = 2;
+  localparam TX_STATE_STOP_BIT = 3;
+  localparam TX_STATE_DEBOUNCE = 4;
+
+  /*
+  The idle state waits for the button to be pressed (which will make it go low) at which point we will move to the start bit state. If the button is not pressed we set the uart_tx to be high as in UART we have a high idle state.
+  */
+  always @(posedge clk) begin
+    case (tx_state)
+      TX_STATE_IDLE: begin
+        if (btn1 == 0) begin
+          tx_state <= TX_STATE_START_BIT;
+          tx_counter <= 0;
+          tx_byte_counter <= 0;
+        end else tx_pin_register <= 1;
+      end
+
+      /*
+      The start bit is a low signal for DELAY_FRAMES, once reached we put the next byte we need to send into dataOut and reset the txBitNumber back to 0.
+      */
+      TX_STATE_START_BIT: begin
+        tx_pin_register <= 0;
+        // refactor to:
+        // if ((tx_counter < DELAY_FRAMES))
+        if ((tx_counter + 1) == DELAY_FRAMES) begin
+          tx_state <= TX_STATE_WRITE;
+          data_out <= test_memory[tx_byte_counter];
+          tx_memory_loc <= 0;
+          tx_counter <= 0;
+        end else tx_counter <= tx_counter + 1;
+      end
+
+      /*
+      The write state is very similar, except instead of setting the tx pin to low, we set it to the current bit of the current byte. When the frame is over we check if we are already on the last bit, if so we go to the stop bit state, otherwise we increment the bit number and keep the current state of TX_STATE_WRITE.
+      */
+      TX_STATE_WRITE: begin
+        tx_pin_register <= data_out[tx_memory_loc];
+        if ((tx_counter + 1) == DELAY_FRAMES) begin
+          if (tx_memory_loc == 3'b111) begin
+            tx_state <= TX_STATE_STOP_BIT;
+          end else begin
+            tx_state <= TX_STATE_WRITE;
+            tx_memory_loc <= tx_memory_loc + 1;
+          end
+          tx_counter <= 0;
+        end else tx_counter <= tx_counter + 1;
+      end
+
+      /*
+      The stop bit is a high output bit, after waiting DELAY_FRAMES we check if there are any other bytes to send, if there are, we go back to send another start bit and the cycle will repeat for the next byte. If not we go to the debounce state.
+      */
+      TX_STATE_STOP_BIT: begin
+        tx_pin_register <= 1;
+        if ((tx_counter + 1) == DELAY_FRAMES) begin
+          if (tx_byte_counter == MEMORY_LENGTH - 1) begin
+            tx_state <= TX_STATE_DEBOUNCE;
+          end else begin
+            tx_byte_counter <= tx_byte_counter + 1;
+            tx_state <= TX_STATE_START_BIT;
+          end
+          tx_counter <= 0;
+        end else tx_counter <= tx_counter + 1;
+      end
+
+      TX_STATE_DEBOUNCE: begin
+        // ???
+        if (tx_counter == 23'b111111111111111111) begin
+          if (btn1 == 1) tx_state <= TX_STATE_IDLE;
+        end else tx_counter <= tx_counter + 1;
+      end
+    endcase
+
+  end
+
+
+
+
+
 endmodule
