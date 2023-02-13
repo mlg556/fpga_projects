@@ -1,0 +1,16 @@
+// Generated with Lushay Code
+
+IO_LOC  "clk" 52;
+IO_PORT "clk" PULL_MODE=UP;
+
+IO_LOC  "oled_dc" 38;
+IO_PORT "oled_dc" DRIVE=8 IO_TYPE=LVCMOS33 PULL_MODE=UP;
+
+IO_LOC  "oled_reset" 37;
+IO_PORT "oled_reset" DRIVE=8 IO_TYPE=LVCMOS33 PULL_MODE=UP;
+
+IO_LOC  "oled_mosi" 36;
+IO_PORT "oled_mosi" DRIVE=8 IO_TYPE=LVCMOS33 PULL_MODE=UP;
+
+IO_LOC  "oled_sck" 39;
+IO_PORT "oled_sck" DRIVE=8 IO_TYPE=LVCMOS33 PULL_MODE=UP;
