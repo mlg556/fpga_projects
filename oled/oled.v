@@ -1,5 +1,5 @@
 module oled #(
-    parameter STARTUP_DELAY = 32'd100000000
+    parameter STARTUP_DELAY = 27_000_000 / 3
 ) (
     input clk,
     output oled_sck,  // d0
@@ -9,14 +9,14 @@ module oled #(
     output oled_cs  // does not exist on my oled
 
 );
-  // state machine, 5 states, 8 bits
-  localparam STATE_INIT_POWER = 8'd0;
-  localparam STATE_INIT_CMD = 8'd1;
-  localparam STATE_SEND = 8'd2;
-  localparam STATE_INIT_FINISH = 8'd3;
-  localparam STATE_LOAD_DATA = 8'd4;
+  // state machine, 5 states, 3 bits since 5 < 2^3
+  localparam STATE_INIT_POWER = 3'd0;
+  localparam STATE_INIT_CMD = 3'd1;
+  localparam STATE_SEND = 3'd2;
+  localparam STATE_INIT_FINISH = 3'd3;
+  localparam STATE_LOAD_DATA = 3'd4;
 
-  reg [32:0] counter = 0;
+  reg [31:0] counter = 0;
   reg [2:0] state = 0;
 
   reg sck = 1;
@@ -26,7 +26,7 @@ module oled #(
   reg cs = 0;
 
   reg [7:0] data_to_send = 0;
-  reg [3:0] bit_num = 0;  // which bit of the current byte, 8 bits in a bytes to len=3
+  reg [2:0] bit_num = 0;  // which bit of the current byte, 8 bits in a bytes to len=3
   reg [9:0] pixel_counter = 0;  // which pixel on the screen
 
   localparam INIT_COMMANDS_SIZE = 23;
@@ -104,12 +104,12 @@ module oled #(
 
       STATE_SEND: begin
         // pull clock low, set the data pin
-        if (counter == 32'd0) begin
+        if (counter == 0) begin
           sck <= 0;
           mosi <= data_to_send[bit_num];
-          counter <= 32'd1;  // reset counter?
+          counter <= 1;  // reset counter?
         end else begin
-          counter <= 32'd0;
+          counter <= 0;
           sck <= 1;
           if (bit_num == 0) state <= STATE_INIT_FINISH;  // whole byte sent
           else bit_num <= bit_num - 1;
@@ -135,6 +135,8 @@ module oled #(
         if (pixel_counter < 127) data_to_send <= 8'b01010111;  // test pattern
         else data_to_send <= 0;
       end
+
+      default: state <= STATE_INIT_POWER;  // go to power reset by default
     endcase
   end
 endmodule
