@@ -131,12 +131,18 @@ module oled #(
         dc <= 1;
         bit_num <= 3'd7;
         state <= STATE_SEND;
+        data_to_send <= framebuf[pixel_counter];
 
-        if (pixel_counter < 127) data_to_send <= 8'b01010111;  // test pattern
-        else data_to_send <= 0;
+        //if (pixel_counter < 127) data_to_send <= 8'b01010111;  // test pattern
       end
 
       default: state <= STATE_INIT_POWER;  // go to power reset by default
     endcase
   end
+
+  // loading an image
+  reg [7:0] framebuf[1023:0];
+  initial $readmemh("image.hex", framebuf);
+
+
 endmodule
