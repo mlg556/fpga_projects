@@ -3,7 +3,7 @@
 #    for /f %%i in ("%~dp0") do @set YOSYSHQ_ROOT=%%~fi
 #)
 
-function prompt { "$((get-item $pwd).Name) > " }
+function prompt { "[OSS] $((get-item $pwd).Name) > " }
 function ports { python -c "import serial.tools.list_ports as ls; print([p.device for p in ls.comports()])" }
 
 # set root directory
