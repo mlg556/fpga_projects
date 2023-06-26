@@ -42,7 +42,7 @@ module oled #(
     8'h20,
     8'h00,
     // scan direction, normal
-    8'hC8,
+    8'hC0,
     // scan line start
     8'h40,
     // address 0
@@ -134,6 +134,7 @@ module oled #(
         data_to_send <= framebuf[pixel_counter];
 
         //if (pixel_counter < 127) data_to_send <= 8'b01010111;  // test pattern
+        //else data_to_send <= 0;
       end
 
       default: state <= STATE_INIT_POWER;  // go to power reset by default
@@ -142,7 +143,7 @@ module oled #(
 
   // loading an image
   reg [7:0] framebuf[1023:0];
-  initial $readmemh("image.hex", framebuf);
+  initial $readmemh("sprite.hex", framebuf);
 
 
 endmodule

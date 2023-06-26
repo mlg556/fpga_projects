@@ -31,4 +31,4 @@ clean:
 	del uart.fs 
 
 .PHONY: load clean test
-.INTERMEDIATE: uart_pnr.json uart.json uart_test.o
+# .INTERMEDIATE: uart_pnr.json uart.json uart_test.o

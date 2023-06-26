@@ -1,10 +1,3 @@
-import serial.tools.list_ports
+import serial.tools.list_ports as ls
 
-ports = serial.tools.list_ports.comports()
-
-print("-" * 64)
-
-for port, desc, _ in sorted(ports):
-    print(f"{port}: {desc}")
-
-print("-" * 64)
+print([p.device for p in ls.comports()])
